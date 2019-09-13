@@ -9,4 +9,6 @@ s.platform = :ios, '8.3'
 s.source   = { :git => 'https://github.com/queueit/ios-webui-sdk.git', :tag => '2.12.2' }
 s.requires_arc = true
 s.source_files = "QueueITLib/*.{h,m}"
+s.resource_bundles = {'Queue-It' => ['QueueITLib/*.{storyboard,xib,xcassets,json,imageset,png,ttf}'
+                                             ]}
 end

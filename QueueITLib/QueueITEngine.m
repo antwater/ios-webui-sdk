@@ -90,7 +90,19 @@ static int INITIAL_WAIT_RETRY_SEC = 1;
     
     if(self.requestInProgress)
     {
-        @throw [NSException exceptionWithName:@"QueueITRuntimeException" reason:[self errorTypeEnumToString:RequestAlreadyInProgress] userInfo:nil];
+        
+        
+        NSException *exception = [NSException exceptionWithName:@"QueueITRuntimeException" reason:[self errorTypeEnumToString:RequestAlreadyInProgress] userInfo:nil];
+        
+        NSMutableDictionary * info = [NSMutableDictionary dictionary];
+        [info setValue:exception.name forKey:@"ExceptionName"];
+        [info setValue:exception.reason forKey:@"ExceptionReason"];
+        [info setValue:exception.callStackReturnAddresses forKey:@"ExceptionCallStackReturnAddresses"];
+        [info setValue:exception.callStackSymbols forKey:@"ExceptionCallStackSymbols"];
+        [info setValue:exception.userInfo forKey:@"ExceptionUserInfo"];
+        
+        NSError *error = [[NSError alloc] initWithDomain:@"com.mobile.tiket" code:400 userInfo:info];
+        @throw error;
     }
     
     self.requestInProgress = YES;

@@ -57,14 +57,27 @@ static NSString * const JAVASCRIPT_GET_BODY_CLASSES = @"document.getElementsByTa
     [self.view addSubview:self.webView];
     [self.webView addSubview:self.spinner];
     
+    
+    UIButton *closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    NSBundle *bundle = [NSBundle bundleWithURL: [[NSBundle bundleForClass:QueueITWKViewController.class] URLForResource:@"Queue-It" withExtension:@"bundle"]];
+    UIImage *closeButtonImage = [UIImage imageNamed:@"icClose" inBundle:bundle compatibleWithTraitCollection:nil];
+    [closeButton setFrame:CGRectMake(24, 44, 24, 24)];
+    [closeButton setBackgroundImage:closeButtonImage forState:UIControlStateNormal];
+    [closeButton addTarget:self action:@selector(buttonPressed) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:closeButton];
+    
     NSURL *urlAddress = [NSURL URLWithString:self.queueUrl];
     NSURLRequest *request = [NSURLRequest requestWithURL:urlAddress];
     [self.webView loadRequest:request];
 }
 
-#pragma mark - WKNavigationDelegate
+- (void)buttonPressed {
+    [self.engine raiseUserExited];
+    [self dismissViewControllerAnimated:true completion:nil];
+}
 
-- (void)webView:(WKWebView*)webView decidePolicyForNavigationAction:(nonnull WKNavigationAction *)navigationAction decisionHandler:(nonnull void (^)(WKNavigationActionPolicy))decisionHandler{
+#pragma mark - WKNavigationDelegate
+- (void)webView:(WKWebView*)webView decidePolicyForNavigationAction:(nonnull WKNavigationAction *)navigationAction decisionHandler:(nonnull void (^)(WKNavigationActionPolicy))decisionHandler {
     
     if (!self.isQueuePassed) {
         NSURLRequest* request = navigationAction.request;
@@ -104,7 +117,6 @@ static NSString * const JAVASCRIPT_GET_BODY_CLASSES = @"document.getElementsByTa
             }
         }
     }
-    
     decisionHandler(WKNavigationActionPolicyAllow);
 }
 
