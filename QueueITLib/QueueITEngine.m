@@ -67,7 +67,10 @@ static int INITIAL_WAIT_RETRY_SEC = 1;
             return;
         }
     }
-    @throw [NSException exceptionWithName:@"QueueITRuntimeException" reason:[self errorTypeEnumToString:NetworkUnavailable] userInfo:nil];
+    
+    NSException *exception = [NSException exceptionWithName:@"QueueITRuntimeException" reason:[self errorTypeEnumToString:NetworkUnavailable] userInfo:nil];
+
+    @throw exception;
 }
 
 -(NSString*) errorTypeEnumToString:(QueueITRuntimeError)errorEnumVal
@@ -84,14 +87,32 @@ static int INITIAL_WAIT_RETRY_SEC = 1;
     return self.requestInProgress;
 }
 
--(void)run
+-(BOOL)runWithError:(NSError **)error
 {
-    [self checkConnection];
+    @try {
+        [self checkConnection];
+        
+    }
+    @catch (NSException *exception) {
+        NSMutableDictionary * info = [NSMutableDictionary dictionary];
+        [info setValue:exception.name forKey:@"ExceptionName"];
+        [info setValue:exception.reason forKey:@"ExceptionReason"];
+        [info setValue:exception.callStackReturnAddresses forKey:@"ExceptionCallStackReturnAddresses"];
+        [info setValue:exception.callStackSymbols forKey:@"ExceptionCallStackSymbols"];
+        [info setValue:exception.userInfo forKey:@"ExceptionUserInfo"];
+        
+        if (error) {
+            *error = [[NSError alloc] initWithDomain:@"com.mobile.tiket" code:-1009 userInfo:info];
+        }
+        return NO;
+    }
+    @catch (NSError *e) {
+        *error = e;
+        return NO;
+    }
     
     if(self.requestInProgress)
     {
-        
-        
         NSException *exception = [NSException exceptionWithName:@"QueueITRuntimeException" reason:[self errorTypeEnumToString:RequestAlreadyInProgress] userInfo:nil];
         
         NSMutableDictionary * info = [NSMutableDictionary dictionary];
@@ -101,8 +122,10 @@ static int INITIAL_WAIT_RETRY_SEC = 1;
         [info setValue:exception.callStackSymbols forKey:@"ExceptionCallStackSymbols"];
         [info setValue:exception.userInfo forKey:@"ExceptionUserInfo"];
         
-        NSError *error = [[NSError alloc] initWithDomain:@"com.mobile.tiket" code:400 userInfo:info];
-        @throw error;
+        if (error) {
+            *error = [[NSError alloc] initWithDomain:@"com.mobile.tiket" code:400 userInfo:info];
+        }
+        return NO;
     }
     
     self.requestInProgress = YES;
@@ -110,6 +133,8 @@ static int INITIAL_WAIT_RETRY_SEC = 1;
     if (![self tryShowQueueFromCache]) {
         [self tryEnqueue];
     }
+    
+    return NO;
     
 }
 

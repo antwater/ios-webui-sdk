@@ -78,13 +78,12 @@ static NSString * const JAVASCRIPT_GET_BODY_CLASSES = @"document.getElementsByTa
 
 #pragma mark - WKNavigationDelegate
 - (void)webView:(WKWebView*)webView decidePolicyForNavigationAction:(nonnull WKNavigationAction *)navigationAction decisionHandler:(nonnull void (^)(WKNavigationActionPolicy))decisionHandler {
+    NSURLRequest* request = navigationAction.request;
+    NSString* urlString = [[request URL] absoluteString];
+    NSString* targetUrlString = self.eventTargetUrl;
+    NSLog(@"request Url: %@", urlString);
     
     if (!self.isQueuePassed) {
-        NSURLRequest* request = navigationAction.request;
-        NSString* urlString = [[request URL] absoluteString];
-        NSString* targetUrlString = self.eventTargetUrl;
-        NSLog(@"request Url: %@", urlString);
-        NSLog(@"target Url: %@", targetUrlString);
         if (urlString != nil) {
             NSURL* url = [NSURL URLWithString:urlString];
             NSURL* targetUrl = [NSURL URLWithString:targetUrlString];
@@ -136,8 +135,19 @@ static NSString * const JAVASCRIPT_GET_BODY_CLASSES = @"document.getElementsByTa
     [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
 }
 
+- (void)webView:(WKWebView *)webView didFailNavigation:(null_unspecified WKNavigation *)navigation withError:(nonnull NSError *)error {
+}
+
+- (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(null_unspecified WKNavigation *)navigation withError:(nonnull NSError *)error {
+    [self.engine.queueITUnavailableDelegate notifyQueueITUnavailable: [NSString stringWithFormat:@"%d",error.code]];
+}
+
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation{
     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+    
+    NSURL* url = webView.URL;
+    NSString* urlString = url.absoluteString;
+    NSLog(@"finished url = %@", urlString); 
     
     [self.spinner stopAnimating];
     if (![self.webView isLoading])
