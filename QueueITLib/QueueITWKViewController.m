@@ -39,12 +39,13 @@ static NSString * const JAVASCRIPT_GET_BODY_CLASSES = @"document.getElementsByTa
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.view.backgroundColor = [UIColor whiteColor];
     
     WKPreferences* preferences = [[WKPreferences alloc]init];
     preferences.javaScriptEnabled = YES;
     WKWebViewConfiguration* config = [[WKWebViewConfiguration alloc]init];
     config.preferences = preferences;
-    WKWebView* view = [[WKWebView alloc]initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height) configuration:config];
+    WKWebView* view = [[WKWebView alloc]initWithFrame:CGRectMake(0, 84, self.view.bounds.size.width, self.view.bounds.size.height - 84) configuration:config];
     view.navigationDelegate = self;
     self.webView = view;
 }
